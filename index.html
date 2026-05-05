@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CRM Pipeline Simulator</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <h1 class="sr-only">Simulador de pipeline de CRM — extração, transformação e carga até o BigQuery</h1>
+
+  <header class="app-header">
+    <div>
+      <div class="app-title"><span>CRM</span> Pipeline</div>
+      <div class="app-subtitle">Data Engineering · ETL Simulator</div>
+    </div>
+    <div class="app-status">
+      <div class="status-dot"></div>
+      Sistema online
+    </div>
+  </header>
+
+  <!-- ── PIPELINE NAV ── -->
+  <nav class="pipeline-nav" aria-label="Etapas do pipeline">
+    <button class="stage-btn active" id="btn-0"
+      style="--stage-color:#3b82f6;--stage-bg:rgba(59,130,246,0.07)"
+      onclick="goStage(0)">
+      <span class="s-num">01</span>
+      <span class="s-icon">🗄️</span>
+      <span class="s-label">Fonte</span>
+      <span class="s-check">✓</span>
+    </button>
+    <button class="stage-btn" id="btn-1"
+      style="--stage-color:#10b981;--stage-bg:rgba(16,185,129,0.07)"
+      onclick="goStage(1)">
+      <span class="s-num">02</span>
+      <span class="s-icon">🔌</span>
+      <span class="s-label">Extrator</span>
+      <span class="s-check">✓</span>
+    </button>
+    <button class="stage-btn" id="btn-2"
+      style="--stage-color:#f59e0b;--stage-bg:rgba(245,158,11,0.07)"
+      onclick="goStage(2)">
+      <span class="s-num">03</span>
+      <span class="s-icon">⚙️</span>
+      <span class="s-label">Transformador</span>
+      <span class="s-check">✓</span>
+    </button>
+    <button class="stage-btn" id="btn-3"
+      style="--stage-color:#8b5cf6;--stage-bg:rgba(139,92,246,0.07)"
+      onclick="goStage(3)">
+      <span class="s-num">04</span>
+      <span class="s-icon">🔍</span>
+      <span class="s-label">BigQuery</span>
+      <span class="s-check">✓</span>
+    </button>
+  </nav>
+
+  <!-- ──────────────────────────────────────── -->
+  <!-- STAGE 0: FONTE DE DADOS                 -->
+  <!-- ──────────────────────────────────────── -->
+  <div id="stage-0" class="panel">
+    <div class="panel-header">
+      <span class="ph-badge badge" style="background:rgba(59,130,246,0.12);color:#3b82f6;border-color:rgba(59,130,246,0.3)">Fonte de dados</span>
+      <span class="ph-title">Configuração da origem</span>
+      <span class="ph-sub">crm.customers · raw</span>
+    </div>
+    <div class="panel-body">
+      <div class="config-grid">
+        <div class="field-group">
+          <label>Tipo de fonte</label>
+          <select id="source-type">
+            <option value="postgres">PostgreSQL (producao)</option>
+            <option value="api">REST API / Webhook</option>
+            <option value="csv">Arquivo CSV</option>
+            <option value="salesforce">Salesforce CRM</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label>Tabela / Endpoint</label>
+          <input value="crm.customers" id="source-table" />
+        </div>
+        <div class="field-group">
+          <label>Tipo de carga</label>
+          <select id="load-type">
+            <option>Full refresh</option>
+            <option>Incremental (delta)</option>
+            <option>CDC (Change Data Capture)</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label>Quantidade de registros</label>
+          <select id="rec-count">
+            <option value="8">8 registros (demo)</option>
+            <option value="50">50 registros</option>
+            <option value="1000">1.000 registros</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="section-label">Preview dos dados brutos</div>
+      <div style="margin-bottom:10px">
+        <span class="badge badge-warn">3 inconsistências detectadas</span>
+      </div>
+      <div class="mock-table-wrap">
+        <table class="mock-table" id="raw-table">
+          <thead>
+            <tr>
+              <th>id</th>
+              <th>nome</th>
+              <th>email</th>
+              <th>telefone</th>
+              <th>segmento</th>
+              <th>receita_anual</th>
+              <th>criado_em</th>
+            </tr>
+          </thead>
+          <tbody id="raw-body"></tbody>
+        </table>
+      </div>
+
+      <div class="nav-row">
+        <button class="btn-primary"
+          style="--btn-color:#3b82f6;--btn-glow:rgba(59,130,246,0.25)"
+          onclick="goStage(1)">
+          Próximo: Extrator ↗
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ──────────────────────────────────────── -->
+  <!-- STAGE 1: EXTRATOR                       -->
+  <!-- ──────────────────────────────────────── -->
+  <div id="stage-1" class="panel hidden">
+    <div class="panel-header">
+      <span class="ph-badge badge" style="background:rgba(16,185,129,0.12);color:#10b981;border-color:rgba(16,185,129,0.3)">Extrator</span>
+      <span class="ph-title">Extração e validação inicial</span>
+      <span class="ph-sub">Conexão · schema check · log</span>
+    </div>
+    <div class="panel-body">
+
+      <div class="stat-grid">
+        <div class="stat-card" style="--stat-color:var(--c-text)">
+          <div class="sc-val" id="st-total">—</div>
+          <div class="sc-lab">Registros lidos</div>
+        </div>
+        <div class="stat-card" style="--stat-color:var(--c-ok)">
+          <div class="sc-val" id="st-ok">—</div>
+          <div class="sc-lab">Schema ok</div>
+        </div>
+        <div class="stat-card" style="--stat-color:var(--c-err)">
+          <div class="sc-val" id="st-err">—</div>
+          <div class="sc-lab">Erros de schema</div>
+        </div>
+      </div>
+
+      <div class="log-grid">
+        <div>
+          <div class="log-section-title">Log de extração</div>
+          <div class="log-box" id="extract-log">
+            <span class="log-info">// aguardando execução...</span>
+          </div>
+        </div>
+        <div>
+          <div class="log-section-title">Schema esperado vs recebido</div>
+          <div class="log-box" id="schema-log">
+            <span class="log-info">// aguardando extração...</span>
+          </div>
+        </div>
+      </div>
+
+      <div id="run-anim" class="run-anim hidden">
+        <div class="spinner"></div>
+        Extraindo dados...
+      </div>
+
+      <div class="nav-row">
+        <button class="btn-secondary" onclick="goStage(0)">← Voltar</button>
+        <button id="go-transform-btn"
+          class="btn-secondary hidden"
+          onclick="goStage(2)">
+          Próximo: Transformador ↗
+        </button>
+        <button id="btn-run-extract"
+          class="btn-primary"
+          style="--btn-color:#10b981;--btn-glow:rgba(16,185,129,0.25)"
+          onclick="runExtract()">
+          Executar extração ↗
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ──────────────────────────────────────── -->
+  <!-- STAGE 2: TRANSFORMADOR                  -->
+  <!-- ──────────────────────────────────────── -->
+  <div id="stage-2" class="panel hidden">
+    <div class="panel-header">
+      <span class="ph-badge badge" style="background:rgba(245,158,11,0.12);color:#f59e0b;border-color:rgba(245,158,11,0.3)">Transformador</span>
+      <span class="ph-title">Regras de transformação</span>
+      <span class="ph-sub">Limpeza · padronização · enriquecimento</span>
+    </div>
+    <div class="panel-body">
+
+      <div class="section-label">Selecione as regras a aplicar</div>
+      <div class="rules-list" id="rules-list"></div>
+
+      <div class="section-label mt-12">Preview antes / depois</div>
+      <div class="before-after">
+        <div class="ba-col">
+          <div class="ba-label before">▼ Antes da transformação</div>
+          <div class="mock-table-wrap">
+            <table class="mock-table">
+              <tbody id="before-body"></tbody>
+            </table>
+          </div>
+        </div>
+        <div class="ba-col">
+          <div class="ba-label after">✓ Depois da transformação</div>
+          <div class="mock-table-wrap">
+            <table class="mock-table">
+              <tbody id="after-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="nav-row">
+        <button class="btn-secondary" onclick="goStage(1)">← Voltar</button>
+        <button class="btn-primary"
+          style="--btn-color:#f59e0b;--btn-glow:rgba(245,158,11,0.25)"
+          onclick="runTransform()">
+          Aplicar e carregar no BigQuery ↗
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ──────────────────────────────────────── -->
+  <!-- STAGE 3: BIGQUERY                       -->
+  <!-- ──────────────────────────────────────── -->
+  <div id="stage-3" class="panel hidden">
+    <div class="panel-header">
+      <span class="ph-badge badge" style="background:rgba(139,92,246,0.12);color:#8b5cf6;border-color:rgba(139,92,246,0.3)">BigQuery</span>
+      <span class="ph-title">Consulta e validação final</span>
+      <span class="ph-sub">crm_dataset.customers_clean</span>
+    </div>
+    <div class="panel-body">
+
+      <div class="stat-grid">
+        <div class="stat-card" style="--stat-color:var(--c-bq)">
+          <div class="sc-val" id="bq-loaded">—</div>
+          <div class="sc-lab">Registros carregados</div>
+        </div>
+        <div class="stat-card" style="--stat-color:var(--c-text)">
+          <div class="sc-val" id="bq-cols">7</div>
+          <div class="sc-lab">Colunas</div>
+        </div>
+        <div class="stat-card" style="--stat-color:var(--c-ok)">
+          <div class="sc-val" id="bq-time">—</div>
+          <div class="sc-lab">Tempo de carga</div>
+        </div>
+      </div>
+
+      <div class="bq-toolbar">
+        <span class="bq-toolbar-label">Queries rápidas:</span>
+        <button class="bq-preset" onclick="setQuery('all')">Todos os registros</button>
+        <button class="bq-preset" onclick="setQuery('seg')">Por segmento</button>
+        <button class="bq-preset" onclick="setQuery('issues')">Problemas restantes</button>
+        <button class="bq-preset" onclick="setQuery('revenue')">Top receita</button>
+      </div>
+
+      <div class="bq-query-wrap">
+        <textarea class="bq-query" id="bq-query" rows="4">SELECT * FROM `crm_dataset.customers_clean` LIMIT 100;</textarea>
+      </div>
+
+      <div class="nav-row" style="margin-top:0;margin-bottom:14px">
+        <button class="btn-secondary" onclick="goStage(2)">← Voltar</button>
+        <button class="btn-primary"
+          style="--btn-color:#8b5cf6;--btn-glow:rgba(139,92,246,0.25)"
+          onclick="runQuery()">
+          Executar query ↗
+        </button>
+      </div>
+
+      <p class="result-summary" id="bq-summary"></p>
+      <div class="mock-table-wrap">
+        <table class="mock-table" id="bq-result-table">
+          <thead id="bq-result-head"></thead>
+          <tbody id="bq-result-body"></tbody>
+        </table>
+      </div>
+
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
