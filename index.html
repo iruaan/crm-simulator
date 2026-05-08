@@ -1,374 +1,546 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-  <title>CRM Pipeline Simulator</title>
-  <link rel="stylesheet" href="style.css"/>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Como funciona o Pipeline de Dados do CRM</title>
+<link rel="stylesheet" href="style.css"/>
 </head>
 <body>
 
-<h1 class="sr-only">Simulador de pipeline CRM</h1>
-
-<header class="app-header">
-  <div>
-    <div class="app-title"><span>CRM</span> Pipeline</div>
-    <div class="app-subtitle">Data Engineering · ETL Simulator</div>
+<!-- ══ HERO ══════════════════════════════════════════ -->
+<header class="hero">
+  <div class="hero-inner">
+    <div class="hero-eyebrow">Dito CDP · Guia interativo</div>
+    <h1 class="hero-title">Como os dados<br>do CRM chegam<br>até você</h1>
+    <p class="hero-desc">Do banco de dados bruto até as análises prontas — explore cada etapa do caminho. Cada seção tem uma explicação simples e uma explicação técnica.</p>
+    <div class="hero-badges">
+      <span class="hbadge"><span class="hbadge-dot plain"></span>Linguagem simples</span>
+      <span class="hbadge"><span class="hbadge-dot tech"></span>Detalhe técnico</span>
+    </div>
   </div>
-  <div class="app-status"><div class="status-dot"></div>Sistema online</div>
+  <div class="hero-pipeline-mini">
+    <div class="mini-step s0" onclick="goStep(0)">
+      <div class="mini-icon">🗄️</div>
+      <div class="mini-label">Fonte</div>
+    </div>
+    <div class="mini-arrow">→</div>
+    <div class="mini-step s1" onclick="goStep(1)">
+      <div class="mini-icon">🔌</div>
+      <div class="mini-label">Extração</div>
+    </div>
+    <div class="mini-arrow">→</div>
+    <div class="mini-step s2" onclick="goStep(2)">
+      <div class="mini-icon">⚙️</div>
+      <div class="mini-label">Limpeza</div>
+    </div>
+    <div class="mini-arrow">→</div>
+    <div class="mini-step s3" onclick="goStep(3)">
+      <div class="mini-icon">🔍</div>
+      <div class="mini-label">Consulta</div>
+    </div>
+  </div>
 </header>
 
-<nav class="pipeline-nav">
-  <button class="stage-btn active" id="btn-0" style="--stage-color:#3b82f6;--stage-bg:rgba(59,130,246,.07)" onclick="goStage(0)">
-    <span class="s-num">01</span><span class="s-icon">🗄️</span><span class="s-label">Fonte</span><span class="s-check">✓</span>
-  </button>
-  <button class="stage-btn" id="btn-1" style="--stage-color:#10b981;--stage-bg:rgba(16,185,129,.07)" onclick="goStage(1)">
-    <span class="s-num">02</span><span class="s-icon">🔌</span><span class="s-label">Extrator</span><span class="s-check">✓</span>
-  </button>
-  <button class="stage-btn" id="btn-2" style="--stage-color:#f59e0b;--stage-bg:rgba(245,158,11,.07)" onclick="goStage(2)">
-    <span class="s-num">03</span><span class="s-icon">⚙️</span><span class="s-label">Transformador</span><span class="s-check">✓</span>
-  </button>
-  <button class="stage-btn" id="btn-3" style="--stage-color:#8b5cf6;--stage-bg:rgba(139,92,246,.07)" onclick="goStage(3)">
-    <span class="s-num">04</span><span class="s-icon">🔍</span><span class="s-label">BigQuery</span><span class="s-check">✓</span>
-  </button>
+<!-- ══ TAB NAV ════════════════════════════════════════ -->
+<nav class="tab-nav" id="tab-nav">
+  <div class="tab-nav-inner">
+    <button class="tab-btn active" id="tab-0" onclick="goStep(0)">
+      <span class="tab-num">01</span>
+      <span class="tab-icon">🗄️</span>
+      <span class="tab-name">Fonte de Dados</span>
+    </button>
+    <button class="tab-btn" id="tab-1" onclick="goStep(1)">
+      <span class="tab-num">02</span>
+      <span class="tab-icon">🔌</span>
+      <span class="tab-name">Extração</span>
+    </button>
+    <button class="tab-btn" id="tab-2" onclick="goStep(2)">
+      <span class="tab-num">03</span>
+      <span class="tab-icon">⚙️</span>
+      <span class="tab-name">Limpeza e Transformação</span>
+    </button>
+    <button class="tab-btn" id="tab-3" onclick="goStep(3)">
+      <span class="tab-num">04</span>
+      <span class="tab-icon">🔍</span>
+      <span class="tab-name">BigQuery</span>
+    </button>
+  </div>
 </nav>
 
-<!-- ══════════════ STAGE 0: FONTE ══════════════ -->
-<div id="stage-0" class="panel">
-  <div class="panel-header">
-    <span class="ph-badge badge" style="background:rgba(59,130,246,.12);color:#3b82f6;border-color:rgba(59,130,246,.3)">Fonte de dados</span>
-    <span class="ph-title">Configuração da origem</span>
-    <span class="ph-sub">crm.customers · raw</span>
-  </div>
-  <div class="panel-body">
-    <div class="config-grid">
-      <div class="field-group">
-        <label>Tipo de fonte</label>
-        <select id="source-type">
-          <option value="postgres">PostgreSQL (producao)</option>
-          <option value="api">REST API / Webhook</option>
-          <option value="csv">Arquivo CSV</option>
-          <option value="salesforce">Salesforce CRM</option>
-        </select>
-      </div>
-      <div class="field-group">
-        <label>Tabela / Endpoint</label>
-        <input value="crm.customers" id="source-table"/>
-      </div>
-      <div class="field-group">
-        <label>Tipo de carga</label>
-        <select id="load-type">
-          <option>Full refresh</option>
-          <option>Incremental (delta)</option>
-          <option>CDC (Change Data Capture)</option>
-        </select>
-      </div>
-      <div class="field-group">
-        <label>Quantidade de registros</label>
-        <select id="rec-count">
-          <option value="8">8 registros (demo)</option>
-          <option value="50">50 registros</option>
-          <option value="1000">1.000 registros</option>
-        </select>
+<!-- ══ MAIN CONTENT ═══════════════════════════════════ -->
+<main class="main">
+
+<!-- ─────────── STEP 0: FONTE ─────────────────────── -->
+<section id="step-0" class="step">
+
+  <div class="step-intro">
+    <div class="step-intro-text">
+      <h2 class="step-title">De onde vêm os dados?</h2>
+      <p class="plain-text">Toda vez que um cliente faz uma compra, envia um e-mail ou preenche um formulário, essa informação é salva num banco de dados. Pense nisso como uma grande planilha onde cada linha é um cliente.</p>
+      <div class="tip-row">
+        <div class="tip tech-tip">
+          <span class="tip-icon">⚡</span>
+          <div>
+            <strong>Detalhe técnico</strong>
+            Os dados brutos ficam num banco PostgreSQL de produção (<code>crm.customers</code>). A Dito conecta via conector CDC ou full-refresh dependendo do volume e frequência configurados.
+          </div>
+        </div>
       </div>
     </div>
-    <div class="section-label">Preview dos dados brutos</div>
-    <div style="margin-bottom:10px"><span class="badge badge-warn">3 inconsistências detectadas</span></div>
-    <div class="mock-table-wrap">
-      <table class="mock-table">
-        <thead><tr><th>id</th><th>brand</th><th>nome</th><th>email</th><th>telefone</th><th>segmento</th><th>receita_anual</th><th>criado_em</th></tr></thead>
+    <div class="step-config-card">
+      <div class="config-card-title">
+        Configuração da origem
+        <span class="tip-anchor" data-tip="source-tip">?</span>
+        <div class="floating-tip" id="source-tip">
+          <div class="ft-title">💡 Tipos de carga</div>
+          <div class="ft-body"><strong>Full refresh:</strong> copia tudo do zero a cada execução.<br><strong>Incremental:</strong> só pega registros novos ou alterados desde a última carga.<br><strong>CDC:</strong> captura mudanças em tempo real via log do banco.</div>
+        </div>
+      </div>
+      <div class="config-fields">
+        <div class="cfg-field">
+          <label>Origem</label>
+          <select id="source-type">
+            <option value="postgres">PostgreSQL (produção)</option>
+            <option value="api">REST API / Webhook</option>
+            <option value="csv">Arquivo CSV</option>
+            <option value="salesforce">Salesforce CRM</option>
+          </select>
+        </div>
+        <div class="cfg-field">
+          <label>Tabela</label>
+          <input value="crm.customers" id="source-table"/>
+        </div>
+        <div class="cfg-field">
+          <label>Tipo de carga</label>
+          <select id="load-type">
+            <option>Full refresh</option>
+            <option>Incremental (delta)</option>
+            <option>CDC (Change Data Capture)</option>
+          </select>
+        </div>
+        <div class="cfg-field">
+          <label>Registros</label>
+          <select id="rec-count">
+            <option value="8">8 (demo)</option>
+            <option value="50">50</option>
+            <option value="1000">1.000</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Data preview card -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-header-left">
+        <span class="card-icon">📋</span>
+        <div>
+          <div class="card-title">Dados brutos</div>
+          <div class="card-sub">Exatamente como saem do banco — sem nenhum tratamento</div>
+        </div>
+      </div>
+      <div class="card-header-right">
+        <span class="status-pill warn">
+          <span class="pill-dot"></span>3 problemas encontrados
+        </span>
+        <span class="tip-anchor" data-tip="dirty-tip">?</span>
+        <div class="floating-tip" id="dirty-tip">
+          <div class="ft-title">⚠️ Por que existem problemas?</div>
+          <div class="ft-body">Dados brutos raramente são perfeitos. Nomes em caixa baixa, e-mails inválidos, telefones sem formatação e campos vazios são comuns em qualquer sistema. As linhas em <span style="color:#ef4444">vermelho</span> têm pelo menos um desses problemas — eles serão corrigidos na etapa de limpeza.</div>
+        </div>
+      </div>
+    </div>
+    <div class="table-scroll">
+      <table class="data-table" id="raw-table">
+        <thead><tr>
+          <th>id</th><th>brand</th><th>nome</th><th>email</th>
+          <th>telefone</th><th>segmento</th><th>receita_anual</th><th>criado_em</th>
+        </tr></thead>
         <tbody id="raw-body"></tbody>
       </table>
     </div>
-    <div class="nav-row">
-      <button class="btn-primary" style="--btn-color:#3b82f6;--btn-glow:rgba(59,130,246,.25)" onclick="goStage(1)">Próximo: Extrator ↗</button>
+    <div class="card-legend">
+      <span class="legend-item"><span class="legend-dot ok"></span>Dado correto</span>
+      <span class="legend-item"><span class="legend-dot err"></span>Problema detectado</span>
     </div>
   </div>
-</div>
 
-<!-- ══════════════ STAGE 1: EXTRATOR ══════════════ -->
-<div id="stage-1" class="panel hidden">
-  <div class="panel-header">
-    <span class="ph-badge badge" style="background:rgba(16,185,129,.12);color:#10b981;border-color:rgba(16,185,129,.3)">Extrator</span>
-    <span class="ph-title">Extração e validação inicial</span>
-    <span class="ph-sub">Conexão · schema check · log</span>
+  <div class="step-nav">
+    <button class="btn-next" onclick="goStep(1)">Ver etapa seguinte: Extração →</button>
   </div>
-  <div class="panel-body">
-    <div class="stat-grid">
-      <div class="stat-card" style="--stat-color:var(--c-text)"><div class="sc-val" id="st-total">—</div><div class="sc-lab">Registros lidos</div></div>
-      <div class="stat-card" style="--stat-color:var(--c-ok)"><div class="sc-val" id="st-ok">—</div><div class="sc-lab">Schema ok</div></div>
-      <div class="stat-card" style="--stat-color:var(--c-err)"><div class="sc-val" id="st-err">—</div><div class="sc-lab">Erros de schema</div></div>
-    </div>
-    <div class="log-grid">
-      <div>
-        <div class="log-section-title">Log de extração</div>
-        <div class="log-box" id="extract-log"><span class="log-info">// aguardando execução...</span></div>
-      </div>
-      <div>
-        <div class="log-section-title">Schema esperado vs recebido</div>
-        <div class="log-box" id="schema-log"><span class="log-info">// aguardando extração...</span></div>
-      </div>
-    </div>
-    <div id="run-anim" class="run-anim hidden"><div class="spinner"></div>Extraindo dados...</div>
-    <div class="nav-row">
-      <button class="btn-secondary" onclick="goStage(0)">← Voltar</button>
-      <button id="go-transform-btn" class="btn-secondary hidden" onclick="goStage(2)">Próximo: Transformador ↗</button>
-      <button id="btn-run-extract" class="btn-primary" style="--btn-color:#10b981;--btn-glow:rgba(16,185,129,.25)" onclick="runExtract()">Executar extração ↗</button>
-    </div>
-  </div>
-</div>
+</section>
 
-<!-- ══════════════ STAGE 2: TRANSFORMADOR UNIFICADO ══════════════ -->
-<div id="stage-2" class="panel hidden">
-  <div class="panel-header">
-    <span class="ph-badge badge" style="background:rgba(245,158,11,.12);color:#f59e0b;border-color:rgba(245,158,11,.3)">Transformador</span>
-    <span class="ph-title">Dataform — customers_clean.sqlx</span>
-    <span class="ph-sub">Edite as regras → o SQLX é gerado automaticamente</span>
-  </div>
+<!-- ─────────── STEP 1: EXTRAÇÃO ─────────────────────── -->
+<section id="step-1" class="step hidden">
 
-  <!-- LAYOUT: df-sidebar | rules-panel | sqlx-panel -->
-  <div class="tf-layout">
-
-    <!-- COL A: Dataform file tree -->
-    <aside class="tf-filetree">
-      <div class="tf-filetree-header">
-        <span class="tf-filetree-title">workspace / dito-cdp</span>
-      </div>
-      <div class="tf-filetree-body">
-        <div class="tf-folder">definitions/</div>
-        <button class="tf-file" id="tffile-raw"    onclick="tfSelectFile('raw_source')">
-          <span class="tf-file-dot" style="background:#4a5068"></span>raw_source.sqlx
-          <span class="tf-file-tag view">view</span>
-        </button>
-        <button class="tf-file active" id="tffile-clean" onclick="tfSelectFile('customers_clean')">
-          <span class="tf-file-dot" style="background:#f59e0b"></span>customers_clean.sqlx
-          <span class="tf-file-tag replace">replace</span>
-        </button>
-        <button class="tf-file" id="tffile-silver" onclick="tfSelectFile('silver_customers')">
-          <span class="tf-file-dot" style="background:#94a3b8"></span>silver_customers.sqlx
-          <span class="tf-file-tag replace">replace</span>
-        </button>
-        <button class="tf-file" id="tffile-brand"  onclick="tfSelectFile('brand_filter')">
-          <span class="tf-file-dot" style="background:#8b5cf6"></span>brand_filter.sqlx
-          <span class="tf-file-tag table">table</span>
-        </button>
-        <div class="tf-folder" style="margin-top:8px">includes/</div>
-        <button class="tf-file" id="tffile-vars"   onclick="tfSelectFile('variables')">
-          <span class="tf-file-dot" style="background:#10b981"></span>variables.js
-          <span class="tf-file-tag js">js</span>
-        </button>
-      </div>
-      <div class="tf-filetree-footer">dataform core 3.0.4</div>
-    </aside>
-
-    <!-- COL B: Rules panel (only visible for customers_clean) -->
-    <div class="tf-rules-col" id="tf-rules-col">
-
-      <div class="tf-col-header">
-        <span class="tf-col-title">Regras de transformação</span>
-        <span class="tf-col-sub">Ative/desative para atualizar o SQLX →</span>
-      </div>
-
-      <div class="tf-rules-list" id="tf-rules-list">
-        <!-- rendered by JS -->
-      </div>
-
-      <!-- Mini before/after preview -->
-      <div class="tf-preview-header">
-        <span class="tf-col-title">Preview de dados</span>
-      </div>
-      <div class="tf-preview-wrap">
-        <div class="tf-preview-block">
-          <div class="tf-preview-label before">ANTES</div>
-          <div class="mock-table-wrap" style="max-height:220px;overflow:auto">
-            <table class="mock-table"><tbody id="tf-before-body"></tbody></table>
-          </div>
-        </div>
-        <div class="tf-preview-block">
-          <div class="tf-preview-label after">DEPOIS</div>
-          <div class="mock-table-wrap" style="max-height:220px;overflow:auto">
-            <table class="mock-table"><tbody id="tf-after-body"></tbody></table>
+  <div class="step-intro">
+    <div class="step-intro-text">
+      <h2 class="step-title">Como os dados são coletados?</h2>
+      <p class="plain-text">A extração é como um caminhão que vai buscar os dados no armazém (banco de dados) e traz para cá. Antes de carregar, ele confere se tudo está no lugar certo — se as colunas têm os tipos certos, se nenhum campo obrigatório está faltando.</p>
+      <div class="tip-row">
+        <div class="tip tech-tip">
+          <span class="tip-icon">⚡</span>
+          <div>
+            <strong>Detalhe técnico</strong>
+            O extrator valida o schema recebido contra o schema esperado. Divergências de tipo (ex: <code>STRING</code> onde se esperava <code>DATE</code>) são logadas como warnings e tratadas na camada de transformação.
           </div>
         </div>
       </div>
     </div>
-
-    <!-- COL C: SQLX editor -->
-    <div class="tf-sqlx-col">
-      <div class="tf-col-header">
-        <span class="tf-col-title" id="tf-sqlx-filename">customers_clean.sqlx</span>
-        <div class="tf-sqlx-tabs">
-          <button class="tf-sqlx-tab active" id="tsqlx-tab-src"      onclick="tfSwitchTab('src')">SQLX</button>
-          <button class="tf-sqlx-tab"        id="tsqlx-tab-compiled" onclick="tfSwitchTab('compiled')">Compilado</button>
-        </div>
+    <div class="stats-row">
+      <div class="stat-big" id="sb-total">
+        <div class="stat-val">—</div>
+        <div class="stat-label">Registros lidos</div>
       </div>
-
-      <!-- SQLX source -->
-      <div id="tsqlx-body-src"      class="tf-sqlx-body" id="tf-code"></div>
-      <!-- Compiled SQL -->
-      <div id="tsqlx-body-compiled" class="tf-sqlx-body hidden"></div>
-
-      <!-- DAG bar -->
-      <div class="tf-dag-bar" id="tf-dag-bar">
-        <span class="tf-dag-label">deps</span>
-        <span id="tf-dag-nodes" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap"></span>
+      <div class="stat-big ok" id="sb-ok">
+        <div class="stat-val">—</div>
+        <div class="stat-label">Schema válido</div>
       </div>
-
-      <!-- Status + run bar -->
-      <div class="tf-run-bar">
-        <span class="tf-run-status" id="tf-run-status">Edite uma regra para recompilar</span>
-        <button class="btn-secondary" style="font-size:10px;padding:6px 12px" onclick="tfCompile()">⚙ Compilar</button>
-        <button class="btn-primary"   style="font-size:10px;padding:7px 14px;--btn-color:#f59e0b;--btn-glow:rgba(245,158,11,.2)" onclick="tfRunAll()">▶ Executar tudo</button>
+      <div class="stat-big err" id="sb-err">
+        <div class="stat-val">—</div>
+        <div class="stat-label">Avisos de schema</div>
       </div>
     </div>
-
-  </div><!-- /.tf-layout -->
-
-  <div class="panel-footer-row">
-    <button class="btn-secondary" onclick="goStage(1)">← Voltar</button>
-    <button class="btn-primary" style="--btn-color:#f59e0b;--btn-glow:rgba(245,158,11,.25)" onclick="runTransform()">Aplicar e carregar no BigQuery ↗</button>
-  </div>
-</div>
-
-<!-- ══════════════ STAGE 3: BIGQUERY ══════════════ -->
-<div id="stage-3" class="panel hidden">
-  <div class="panel-header">
-    <span class="ph-badge badge" style="background:rgba(139,92,246,.12);color:#8b5cf6;border-color:rgba(139,92,246,.3)">BigQuery</span>
-    <span class="ph-title">Console BigQuery</span>
-    <span class="ph-sub">dito-cdp · Simulador</span>
   </div>
 
-  <div class="bq-layout">
+  <div class="two-col">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-header-left">
+          <span class="card-icon">📡</span>
+          <div>
+            <div class="card-title">Log de execução</div>
+            <div class="card-sub">O que aconteceu durante a extração</div>
+          </div>
+        </div>
+        <span class="tip-anchor" data-tip="log-tip">?</span>
+        <div class="floating-tip" id="log-tip">
+          <div class="ft-title">📋 O que é um log?</div>
+          <div class="ft-body">É um diário automático que registra tudo que o sistema fez: conexões, erros, tempo gasto. É a primeira coisa que um engenheiro de dados consulta quando algo dá errado.</div>
+        </div>
+      </div>
+      <div class="log-box" id="extract-log"><span class="log-idle">Aguardando execução…</span></div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="card-header-left">
+          <span class="card-icon">🔎</span>
+          <div>
+            <div class="card-title">Verificação de schema</div>
+            <div class="card-sub">Esperado vs. recebido</div>
+          </div>
+        </div>
+        <span class="tip-anchor" data-tip="schema-tip">?</span>
+        <div class="floating-tip" id="schema-tip">
+          <div class="ft-title">📐 O que é schema?</div>
+          <div class="ft-body">Schema é o "molde" dos dados: define quais campos existem e qual o tipo de cada um (texto, número, data…). Se o dado chega em formato diferente do esperado, pode quebrar análises — por isso checamos isso aqui.</div>
+        </div>
+      </div>
+      <div class="log-box" id="schema-log"><span class="log-idle">Aguardando extração…</span></div>
+    </div>
+  </div>
+
+  <div id="extract-run-anim" class="run-anim hidden">
+    <div class="run-spinner"></div>Extraindo dados…
+  </div>
+
+  <div class="step-nav">
+    <button class="btn-outline" onclick="goStep(0)">← Voltar</button>
+    <button class="btn-next" id="btn-run-extract" onclick="runExtract()">▶ Executar extração</button>
+    <button class="btn-next hidden" id="btn-go-transform" onclick="goStep(2)">Ver limpeza dos dados →</button>
+  </div>
+</section>
+
+<!-- ─────────── STEP 2: TRANSFORMAÇÃO ─────────────────── -->
+<section id="step-2" class="step hidden">
+
+  <div class="step-intro">
+    <div class="step-intro-text">
+      <h2 class="step-title">Como os dados são limpos?</h2>
+      <p class="plain-text">Imagine que você recebeu uma lista de contatos toda bagunçada — nomes em minúsculo, telefones sem formatação, campos vazios. A limpeza padroniza tudo isso para que as análises funcionem corretamente.</p>
+      <div class="tip-row">
+        <div class="tip tech-tip">
+          <span class="tip-icon">⚡</span>
+          <div>
+            <strong>Detalhe técnico</strong>
+            Essas regras são definidas em modelos <strong>Dataform SQLX</strong> (<code>customers_clean.sqlx</code>). Cada regra ativada adiciona uma linha ao SQL gerado — você pode ver o código ao lado.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Fused panel: rules left + SQL right -->
+  <div class="transform-panel">
+
+    <!-- Left: Rules -->
+    <div class="rules-side">
+      <div class="rules-header">
+        <div class="rules-header-title">
+          Regras de limpeza
+          <span class="tip-anchor" data-tip="rules-tip">?</span>
+          <div class="floating-tip" id="rules-tip">
+            <div class="ft-title">⚙️ Como funcionam as regras?</div>
+            <div class="ft-body">Cada regra ativada transforma uma coluna dos dados. Ative ou desative para ver o SQL sendo gerado em tempo real ao lado. Na Dito, essas regras ficam em arquivos <code>.sqlx</code> versionados no Git.</div>
+          </div>
+        </div>
+        <div class="rules-header-sub">Clique para ativar/desativar</div>
+      </div>
+      <div class="rules-list" id="rules-list"></div>
+    </div>
+
+    <!-- Right: Live SQLX -->
+    <div class="sqlx-side">
+      <div class="sqlx-header">
+        <div class="sqlx-file-label">
+          <span class="sqlx-file-icon">📄</span>
+          customers_clean.sqlx
+          <span class="tip-anchor" data-tip="sqlx-tip">?</span>
+          <div class="floating-tip" id="sqlx-tip">
+            <div class="ft-title">📄 O que é um arquivo .sqlx?</div>
+            <div class="ft-body">É um arquivo do Dataform que combina configuração e SQL. O bloco <code>config{}</code> define o tipo da tabela e metadados. O <code>SELECT</code> define as transformações. O Dataform compila isso em SQL puro para rodar no BigQuery.</div>
+          </div>
+        </div>
+        <div class="sqlx-tabs">
+          <button class="sqlx-tab active" id="stab-src" onclick="switchSqlTab('src')">SQLX</button>
+          <button class="sqlx-tab" id="stab-compiled" onclick="switchSqlTab('compiled')">SQL compilado</button>
+        </div>
+      </div>
+      <div class="sqlx-body" id="sqlx-src"></div>
+      <div class="sqlx-body hidden" id="sqlx-compiled"></div>
+      <div class="sqlx-run-bar">
+        <span class="sqlx-status" id="sqlx-status">● Edite uma regra para atualizar o código</span>
+        <button class="btn-compile" onclick="compileSqlx()">⚙ Compilar</button>
+        <button class="btn-run-sqlx" onclick="runSqlx()">▶ Executar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Before / after preview -->
+  <div class="card" style="margin-top:20px">
+    <div class="card-header">
+      <div class="card-header-left">
+        <span class="card-icon">🔄</span>
+        <div>
+          <div class="card-title">Antes e depois da limpeza</div>
+          <div class="card-sub">Os dados mudam conforme você ativa as regras acima</div>
+        </div>
+      </div>
+      <span class="tip-anchor" data-tip="preview-tip">?</span>
+      <div class="floating-tip" id="preview-tip">
+        <div class="ft-title">🔄 Preview em tempo real</div>
+        <div class="ft-body">Cada regra que você ativa é aplicada imediatamente nos dados de exemplo. Assim é possível ver o impacto antes de rodar no BigQuery de verdade.</div>
+      </div>
+    </div>
+    <div class="ba-grid">
+      <div class="ba-col">
+        <div class="ba-badge before">ANTES</div>
+        <div class="table-scroll">
+          <table class="data-table"><tbody id="tf-before"></tbody></table>
+        </div>
+      </div>
+      <div class="ba-divider"></div>
+      <div class="ba-col">
+        <div class="ba-badge after">DEPOIS</div>
+        <div class="table-scroll">
+          <table class="data-table"><tbody id="tf-after"></tbody></table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="step-nav">
+    <button class="btn-outline" onclick="goStep(1)">← Voltar</button>
+    <button class="btn-next" onclick="applyAndGoToBQ()">Aplicar e ver no BigQuery →</button>
+  </div>
+</section>
+
+<!-- ─────────── STEP 3: BIGQUERY ─────────────────────── -->
+<section id="step-3" class="step hidden">
+
+  <div class="step-intro">
+    <div class="step-intro-text">
+      <h2 class="step-title">Onde ficam os dados prontos?</h2>
+      <p class="plain-text">Depois de limpos, os dados vão para o BigQuery — um banco de dados na nuvem do Google feito para consultas rápidas em grandes volumes. É de lá que relatórios, dashboards e análises de marketing são alimentados.</p>
+      <div class="tip-row">
+        <div class="tip tech-tip">
+          <span class="tip-icon">⚡</span>
+          <div>
+            <strong>Detalhe técnico</strong>
+            As tabelas ficam no projeto <code>dito-cdp</code>, dataset <code>dito_cdp</code>. Como o dataset é compartilhado entre todos os clientes, <strong>todo SELECT deve filtrar por <code>brand_id</code></strong> para não misturar dados de marcas diferentes.
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="stats-row">
+      <div class="stat-big" style="--sc:#8b5cf6"><div class="stat-val" id="bq-stat-rows">—</div><div class="stat-label">Registros carregados</div></div>
+      <div class="stat-big" style="--sc:#3b82f6"><div class="stat-val" id="bq-stat-cols">—</div><div class="stat-label">Colunas</div></div>
+      <div class="stat-big ok"><div class="stat-val" id="bq-stat-time">—</div><div class="stat-label">Tempo de carga</div></div>
+    </div>
+  </div>
+
+  <!-- BQ layout: sidebar + main -->
+  <div class="bq-wrap">
+
+    <!-- Sidebar -->
     <aside class="bq-sidebar">
-      <div class="bq-sidebar-header">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="flex-shrink:0;opacity:.4"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-        <input class="bq-search" type="text" placeholder="Pesquisar recursos..."/>
-      </div>
-      <div class="bq-tree">
-        <button class="bq-tree-item project-item" onclick="toggleProject()">
-          <span class="tree-arrow" id="proj-arrow">▾</span>
-          <span style="font-size:13px">☁️</span>
-          <span class="tree-label">dito-cdp</span>
-          <span class="tree-tag">projeto</span>
-        </button>
-        <div id="proj-children">
-          <div class="bq-dataset-block">
-            <button class="bq-tree-item dataset-item" onclick="toggleDataset('ds-main')">
-              <span class="tree-arrow" id="ds-main-arrow">▾</span>
-              <span style="font-size:12px">🗂️</span>
-              <span class="tree-label">dito_cdp</span>
-            </button>
-            <div id="ds-main-children">
-              <button class="bq-tree-item table-item" id="tbl-raw-hist" onclick="selectTable('raw_historical')">
-                <span class="tbl-icon raw-icon">R</span>
-                <div class="tree-info">
-                  <span class="tree-label">raw_historical</span>
-                  <span class="tree-sub">Histórico · multi-brand</span>
-                </div>
-              </button>
-              <button class="bq-tree-item table-item" id="tbl-silver" onclick="selectTable('silver_customers')">
-                <span class="tbl-icon silver-icon">S</span>
-                <div class="tree-info">
-                  <span class="tree-label">silver_customers</span>
-                  <span class="tree-sub">Dados recentes · multi-brand</span>
-                </div>
-              </button>
-              <button class="bq-tree-item table-item" id="tbl-clean" onclick="selectTable('customers_clean')">
-                <span class="tbl-icon clean-icon">C</span>
-                <div class="tree-info">
-                  <span class="tree-label">customers_clean</span>
-                  <span class="tree-sub">Pipeline atual · transformado</span>
-                </div>
-              </button>
-            </div>
-          </div>
+      <div class="bq-sidebar-head">
+        <div class="bq-project-row">
+          <span>☁️</span>
+          <span class="bq-project-name">dito-cdp</span>
+          <span class="bq-proj-tag">projeto</span>
+        </div>
+        <div class="bq-dataset-row">
+          <span>🗂️</span>
+          <span class="bq-dataset-name">dito_cdp</span>
         </div>
       </div>
-      <div class="bq-sidebar-footer">região: us-central1</div>
+
+      <div class="bq-tables">
+        <div class="bq-tables-label">Tabelas disponíveis</div>
+
+        <button class="bq-table-btn" id="bqt-raw" onclick="selectBqTable('raw_historical')">
+          <span class="bq-table-icon raw">R</span>
+          <div class="bq-table-info">
+            <span class="bq-table-name">raw_historical</span>
+            <span class="bq-table-desc">Histórico completo · bruto</span>
+          </div>
+          <span class="tip-anchor small" data-tip="bqt-raw-tip">?</span>
+          <div class="floating-tip left" id="bqt-raw-tip">
+            <div class="ft-title">🗃️ raw_historical</div>
+            <div class="ft-body">Guarda <strong>todos os snapshots</strong> de todos os clientes desde sempre. É o histórico completo e imutável — os dados chegam aqui sem nenhuma transformação. Útil para auditar ou reconstruir o passado.</div>
+          </div>
+        </button>
+
+        <button class="bq-table-btn" id="bqt-silver" onclick="selectBqTable('silver_customers')">
+          <span class="bq-table-icon silver">S</span>
+          <div class="bq-table-info">
+            <span class="bq-table-name">silver_customers</span>
+            <span class="bq-table-desc">Dados recentes · limpos</span>
+          </div>
+          <span class="tip-anchor small" data-tip="bqt-silver-tip">?</span>
+          <div class="floating-tip left" id="bqt-silver-tip">
+            <div class="ft-title">⚗️ silver_customers</div>
+            <div class="ft-body">Camada <strong>Silver</strong>: guarda o registro mais recente de cada cliente, já com transformações básicas aplicadas. É o ponto de partida para a maioria das análises. Sempre filtre por <code>brand_id</code>.</div>
+          </div>
+        </button>
+
+        <button class="bq-table-btn" id="bqt-clean" onclick="selectBqTable('customers_clean')">
+          <span class="bq-table-icon clean">C</span>
+          <div class="bq-table-info">
+            <span class="bq-table-name">customers_clean</span>
+            <span class="bq-table-desc">Pipeline atual · transformado</span>
+          </div>
+          <span class="tip-anchor small" data-tip="bqt-clean-tip">?</span>
+          <div class="floating-tip left" id="bqt-clean-tip">
+            <div class="ft-title">✅ customers_clean</div>
+            <div class="ft-body">Resultado do pipeline desta sessão — os dados após todas as regras de limpeza que você configurou. É esta tabela que alimenta relatórios e campanhas.</div>
+          </div>
+        </button>
+      </div>
+
+      <div class="bq-sidebar-foot">região: us-central1</div>
     </aside>
 
+    <!-- Main BQ area -->
     <div class="bq-main">
-      <div class="stat-grid" style="margin-bottom:14px">
-        <div class="stat-card" style="--stat-color:var(--c-bq)"><div class="sc-val" id="bq-loaded">—</div><div class="sc-lab">Registros carregados</div></div>
-        <div class="stat-card" style="--stat-color:var(--c-text)"><div class="sc-val" id="bq-cols">—</div><div class="sc-lab">Colunas</div></div>
-        <div class="stat-card" style="--stat-color:var(--c-ok)"><div class="sc-val" id="bq-time">—</div><div class="sc-lab">Tempo de carga</div></div>
+
+      <!-- Empty state -->
+      <div id="bq-empty" class="bq-empty">
+        <div class="bq-empty-icon">👆</div>
+        <div class="bq-empty-title">Selecione uma tabela</div>
+        <div class="bq-empty-sub">Clique em uma das tabelas ao lado para ver o schema e executar queries.</div>
       </div>
 
-      <div class="bq-active-table" id="bq-active-table">
-        <span id="bq-active-icon">📋</span>
-        <span id="bq-active-label">Selecione uma tabela na barra lateral</span>
-      </div>
+      <!-- Active table content -->
+      <div id="bq-content" class="hidden">
 
-      <div id="bq-schema-section" class="hidden">
+        <!-- Table header -->
+        <div class="bq-table-header" id="bq-table-header"></div>
+
+        <!-- Inner tabs -->
         <div class="bq-tabs">
-          <button class="bq-tab active" id="tab-schema" onclick="switchTab('schema')">Schema</button>
-          <button class="bq-tab"        id="tab-query"  onclick="switchTab('query')">Editor SQL</button>
+          <button class="bq-tab active" id="bqtab-schema" onclick="switchBqTab('schema')">📋 Schema</button>
+          <button class="bq-tab" id="bqtab-query" onclick="switchBqTab('query')">💬 Editor SQL</button>
         </div>
 
+        <!-- Schema tab -->
         <div id="bq-tab-schema">
-          <div class="mock-table-wrap" style="margin-bottom:12px">
-            <table class="mock-table">
-              <thead><tr><th>Campo</th><th>Tipo</th><th>Modo</th><th>Descrição</th></tr></thead>
+          <div class="table-scroll">
+            <table class="data-table schema-table">
+              <thead><tr><th>Campo</th><th>Tipo</th><th>Obrigatório?</th><th>O que significa</th></tr></thead>
               <tbody id="bq-schema-body"></tbody>
             </table>
           </div>
         </div>
 
+        <!-- Query tab -->
         <div id="bq-tab-query" class="hidden">
-          <div class="brand-filter-bar">
-            <span class="brand-filter-label">Filtrar por brand</span>
-            <div class="brand-tip-wrap">
-              <span class="brand-tip-icon">?</span>
-              <div class="brand-tooltip">
-                <div class="bt-title">💡 Por que filtrar por brand?</div>
-                <div class="bt-body">As tabelas da Dito CDP guardam dados de <strong>todas as marcas</strong> no mesmo dataset. Sem o filtro <code style="color:#c084fc">brand_id</code> sua query retorna dados misturados — o que pode vazar informações entre clientes e distorcer análises.</div>
-                <div class="bt-code" onclick="copyBrandQuery()" title="Clique para copiar">WHERE brand_id = '{{brand_id}}'
+
+          <!-- Brand filter bar -->
+          <div class="brand-bar">
+            <div class="brand-bar-left">
+              <span class="brand-bar-label">Filtrar por marca</span>
+              <span class="tip-anchor" data-tip="brand-tip">?</span>
+              <div class="floating-tip" id="brand-tip">
+                <div class="ft-title">🏷️ Por que filtrar por marca?</div>
+                <div class="ft-body">A Dito é multi-tenant: <strong>todas as marcas compartilham o mesmo dataset</strong>. Sem o filtro <code>brand_id</code>, sua query retorna dados de todas as marcas misturados — o que pode vazar informações entre clientes e tornar análises incorretas. <strong>Sempre filtre!</strong></div>
+                <div class="ft-code" onclick="copyBrandSnippet()">WHERE brand_id = '{{brand_id}}'
   AND _is_current = TRUE</div>
-                <div class="bt-hint">↑ clique para copiar o snippet</div>
+                <div class="ft-code-hint">↑ clique para copiar</div>
               </div>
             </div>
-            <div class="brand-pills" id="brand-pills">
-              <button class="brand-pill active" data-brand="todas"       onclick="selectBrand(this,'todas')">Todas</button>
-              <button class="brand-pill"        data-brand="marca-alpha" onclick="selectBrand(this,'marca-alpha')">Marca Alpha</button>
-              <button class="brand-pill"        data-brand="marca-beta"  onclick="selectBrand(this,'marca-beta')">Marca Beta</button>
-              <button class="brand-pill"        data-brand="marca-gamma" onclick="selectBrand(this,'marca-gamma')">Marca Gamma</button>
+            <div class="brand-pills">
+              <button class="brand-pill active" data-brand="todas"       onclick="pickBrand(this,'todas')">Todas</button>
+              <button class="brand-pill"        data-brand="marca-alpha" onclick="pickBrand(this,'marca-alpha')">Marca Alpha</button>
+              <button class="brand-pill"        data-brand="marca-beta"  onclick="pickBrand(this,'marca-beta')">Marca Beta</button>
+              <button class="brand-pill"        data-brand="marca-gamma" onclick="pickBrand(this,'marca-gamma')">Marca Gamma</button>
             </div>
           </div>
 
-          <div class="bq-toolbar" style="margin-bottom:8px">
-            <span class="bq-toolbar-label">Queries rápidas:</span>
-            <button class="bq-preset" onclick="setQuery('all')">Todos os registros</button>
-            <button class="bq-preset" onclick="setQuery('brand')">Filtrar por brand</button>
-            <button class="bq-preset" onclick="setQuery('seg')">Por segmento</button>
-            <button class="bq-preset" onclick="setQuery('issues')">Problemas restantes</button>
-            <button class="bq-preset" onclick="setQuery('revenue')">Top receita</button>
+          <!-- Quick queries -->
+          <div class="quick-queries">
+            <span class="quick-label">Consultas rápidas:</span>
+            <button class="quick-btn" onclick="setQuery('all')">Todos os registros</button>
+            <button class="quick-btn" onclick="setQuery('brand')">Por marca</button>
+            <button class="quick-btn" onclick="setQuery('seg')">Por segmento</button>
+            <button class="quick-btn" onclick="setQuery('revenue')">Top receita</button>
+            <button class="quick-btn" onclick="setQuery('issues')">Problemas</button>
           </div>
-          <div class="bq-query-wrap">
-            <textarea class="bq-query" id="bq-query" rows="5"></textarea>
+
+          <textarea class="sql-editor" id="bq-query" rows="4"></textarea>
+
+          <div class="query-actions">
+            <button class="btn-next" onclick="runQuery()">▶ Executar query</button>
           </div>
-          <div style="display:flex;justify-content:flex-end;gap:8px;margin-bottom:12px">
-            <button class="btn-secondary" onclick="goStage(2)">← Voltar</button>
-            <button class="btn-primary" style="--btn-color:#8b5cf6;--btn-glow:rgba(139,92,246,.25)" onclick="runQuery()">▶ Executar query</button>
-          </div>
-          <p class="result-summary" id="bq-summary"></p>
-          <div class="mock-table-wrap">
-            <table class="mock-table">
+
+          <div class="query-result-meta" id="bq-result-meta"></div>
+          <div class="table-scroll" id="bq-result-wrap" style="display:none">
+            <table class="data-table">
               <thead id="bq-result-head"></thead>
               <tbody id="bq-result-body"></tbody>
             </table>
           </div>
         </div>
       </div>
-
-      <div id="bq-empty-state" class="bq-empty">
-        <div class="bq-empty-icon">🔍</div>
-        <div class="bq-empty-title">Nenhuma tabela selecionada</div>
-        <div class="bq-empty-sub">Selecione uma tabela no painel lateral para visualizar o schema e executar queries SQL.</div>
-        <button class="btn-secondary" style="margin-top:16px" onclick="goStage(2)">← Voltar ao Transformador</button>
-      </div>
     </div>
   </div>
-</div>
+
+  <div class="step-nav">
+    <button class="btn-outline" onclick="goStep(2)">← Voltar</button>
+  </div>
+</section>
+
+</main>
+
+<!-- ══ FOOTER ═════════════════════════════════════════ -->
+<footer class="site-footer">
+  <span>Dito CDP · Pipeline Simulator</span>
+  <span>Guia interativo para times de dados</span>
+</footer>
 
 <script src="script.js"></script>
 </body>
